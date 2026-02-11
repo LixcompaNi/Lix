@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LixWallet | Creator Edition</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0b0e17; color: white; font-family: sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .admin-panel { display: none; position: fixed; inset: 0; background: #0b0e17; z-index: 100; overflow-y: auto; padding: 20px; }
+        .lix-gradient { background: linear-gradient(135deg, #6366f1, #a855f7); }
+    </style>
+</head>
+<body class="max-w-md mx-auto pb-24">
+
+    <header class="p-6 flex justify-between items-center">
+        <h1 class="text-2xl font-black tracking-tighter text-transparent bg-clip-text lix-gradient">LIX WALLET</h1>
+        <div id="admin-badge" class="hidden bg-red-500 text-[10px] font-bold px-2 py-1 rounded-full animate-pulse">ADMIN MODE</div>
+    </header>
+
+    <main class="px-6">
+        <section class="mb-8">
+            <h3 class="text-gray-500 text-[11px] font-bold uppercase mb-4 tracking-widest">Рынок монет</h3>
+            <div id="market-list" class="grid grid-cols-1 gap-3">
+                <div class="glass p-4 rounded-2xl flex justify-between items-center">
+                    <div>
+                        <span class="text-xs text-gray-400 font-bold">TON / USDT</span>
+                        <div class="text-xl font-mono font-bold">$5.42</div>
+                    </div>
+                    <div class="text-right text-green-400 text-sm font-bold">+2.1%</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass p-6 rounded-[2rem] border-purple-500/20">
+            <h3 class="font-bold mb-4">Создать свою монету</h3>
+            <p class="text-xs text-gray-400 mb-4 font-medium">Стоимость: <span id="user-price-label">100</span> ⭐</p>
+            <input type="text" id="user-coin-name" placeholder="Название монеты" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mb-4 focus:outline-none focus:border-purple-500">
+            <button onclick="userPay()" class="w-full py-4 lix-gradient rounded-2xl font-black text-sm uppercase">Оплатить и создать</button>
+        </section>
+    </main>
+
+    <div id="admin-screen" class="admin-panel">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold">👑 Admin Master</h2>
+            <button onclick="closeAdmin()" class="text-gray-500">Закрыть</button>
+        </div>
+
+        <div class="space-y-8">
+            <div class="glass p-4 rounded-2xl">
+                <label class="block text-xs font-bold text-gray-400 mb-2 uppercase">Цена для юзеров (Stars)</label>
+                <input type="number" id="adm-price" class="w-full bg-black/40 p-3 rounded-xl mb-3 border border-white/10" placeholder="100">
+                <button onclick="updatePrice()" class="w-full py-2 bg-blue-600 rounded-xl text-sm font-bold">Установить цену</button>
+            </div>
+
+            <div class="glass p-4 rounded-2xl border-red-500/30">
+                <label class="block text-xs font-bold text-red-400 mb-2 uppercase text-center">Глобальная Эмиссия (Бесплатно)</label>
+                <input type="text" id="adm-coin-name" class="w-full bg-black/40 p-3 rounded-xl mb-2 border border-white/10" placeholder="Название монеты (напр. BITCOIN)">
+                <input type="text" id="adm-coin-price" class="w-full bg-black/40 p-3 rounded-xl mb-3 border border-white/10" placeholder="Цена (напр. $65,000)">
+                <button onclick="adminCreateCoin()" class="w-full py-3 bg-red-600 rounded-xl text-sm font-black uppercase">Выпустить на рынок</button>
+            </div>
+            
+            <button onclick="clearMarket()" class="w-full py-2 text-red-900 text-[10px] uppercase font-bold">Сбросить все монеты</button>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-6 left-6 right-6 glass p-2 rounded-3xl flex justify-around items-center">
+        <button class="p-3 text-purple-500">🏠</button>
+        <button onclick="openAdmin()" class="p-3 text-gray-400 opacity-20 hover:opacity-100">⚙️</button>
+    </nav>
+
+    <script>
+        const ADMIN_KEY = "LIX-ADMIN-2026-X";
+        let marketCoins = JSON.parse(localStorage.getItem('market')) || [];
+
+        // Рендер рынка
+        function renderMarket() {
+            const list = document.getElementById('market-list');
+            // Оставляем только TON по дефолту
+            list.innerHTML = `
+                <div class="glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-blue-500">
+                    <div><span class="text-xs text-gray-400 font-bold">TON / USDT</span><div class="text-xl font-mono font-bold">$5.42</div></div>
+                    <div class="text-right text-green-400 text-sm font-bold">+2.1%</div>
+                </div>`;
+            
+            marketCoins.forEach(coin => {
+                list.innerHTML += `
+                <div class="glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-purple-600 animate-fadeIn">
+                    <div><span class="text-xs text-gray-400 font-bold uppercase">${coin.name} / TON</span><div class="text-xl font-mono font-bold">${coin.price}</div></div>
+                    <div class="text-right text-purple-400 text-[10px] font-bold uppercase">Official</div>
+                </div>`;
+            });
+        }
+
+        // Админ-функции
+        function openAdmin() {
+            if (prompt("Введите КЛЮЧ АДМИНИСТРАТОРА:") === ADMIN_KEY) {
+                document.getElementById('admin-screen').style.display = 'block';
+                document.getElementById('admin-badge').classList.remove('hidden');
+            } else { alert("ОШИБКА ДОСТУПА"); }
+        }
+
+        function closeAdmin() { document.getElementById('admin-screen').style.display = 'none'; }
+
+        function updatePrice() {
+            const p = document.getElementById('adm-price').value;
+            document.getElementById('user-price-label').innerText = p;
+            alert("Цена изменена!");
+        }
+
+        function adminCreateCoin() {
+            const name = document.getElementById('adm-coin-name').value;
+            const price = document.getElementById('adm-coin-price').value;
+            if(name && price) {
+                marketCoins.push({name, price});
+                localStorage.setItem('market', JSON.stringify(marketCoins));
+                renderMarket();
+                alert("МОНЕТА ВЫПУЩЕНА БЕСПЛАТНО!");
+                document.getElementById('adm-coin-name').value = '';
+            }
+        }
+
+        function clearMarket() {
+            localStorage.removeItem('market');
+            marketCoins = [];
+            renderMarket();
+        }
+
+        function userPay() {
+            alert("Ошибка: Недостаточно Stars. Пополните баланс в @BotFather");
+        }
+
+        renderMarket();
+    </script>
+</body>
+</html>
