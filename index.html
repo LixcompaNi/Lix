@@ -3,149 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LIX ENTERPRISE</title>
+    <title>LIX ENTERPRISE ELITE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style id="custom-styles">
         body { 
             background: #000000; 
             color: #ffffff; 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-            -webkit-font-smoothing: antialiased;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            overflow: hidden;
+            -webkit-user-select: none;
         }
-        .alpha-card {
-            background: #111111;
-            border: 1px solid #222222;
-            border-radius: 24px;
-        }
-        .btn-primary {
-            background: #ef4444; /* Alpha Red */
-            color: #ffffff;
-            border-radius: 16px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-        .btn-primary:active { transform: scale(0.98); background: #dc2626; }
+        .page { display: none; height: 100vh; overflow-y: auto; padding-bottom: 120px; transition: opacity 0.2s; }
+        .page-active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        .btn-secondary {
-            background: #222222;
-            color: #ffffff;
-            border-radius: 16px;
-            font-weight: 600;
-        }
+        .alpha-card { background: #111111; border: 1px solid #222222; border-radius: 28px; }
+        .glass-input { background: #111; border: 1px solid #333; border-radius: 16px; padding: 18px; width: 100%; outline: none; color: white; }
+        .glass-input:focus { border-color: #ef4444; }
 
-        .divider { border-bottom: 0.5px solid #222222; }
-        
-        .admin-panel { 
-            display: none; 
-            position: fixed; 
-            inset: 0; 
-            background: #000000; 
-            z-index: 9999; 
-            padding-top: env(safe-area-inset-top);
+        /* Bottom Tab Bar */
+        .tab-bar { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: rgba(8, 8, 8, 0.96); 
+            backdrop-filter: blur(20px); 
+            border-top: 0.5px solid #222;
+            padding-bottom: env(safe-area-inset-bottom);
+            display: flex; justify-content: space-around; padding-top: 15px;
+            z-index: 1000;
         }
+        .nav-item { color: #555; display: flex; flex-direction: column; align-items: center; flex: 1; }
+        .nav-active { color: #ef4444; } /* Alpha Red */
 
-        input, textarea {
-            background: #111111 !important;
-            border: 1px solid #222222 !important;
-            color: white !important;
-            border-radius: 12px;
-        }
+        /* Trading Elements */
+        .trade-box { background: #0f0f0f; border-radius: 24px; padding: 20px; border: 1px solid #1a1a1a; }
+        .token-badge { background: #222; padding: 6px 12px; rounded-full: 99px; font-size: 11px; font-weight: 800; }
     </style>
 </head>
 <body class="antialiased">
 
-    <div class="h-[env(safe-area-inset-top)]"></div>
-
-    <nav class="flex justify-between items-center px-6 py-4">
-        <div class="flex items-center gap-3">
-            <div id="user-avatar" class="w-9 h-9 bg-neutral-800 rounded-full flex items-center justify-center overflow-hidden border border-neutral-700">
-                <span class="text-xs">👤</span>
+    <div id="page-wallet" class="page page-active">
+        <header class="flex justify-between items-center px-6 py-6">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-6 bg-red-600 rounded-full"></div>
+                <h1 class="text-xl font-black uppercase tracking-tighter">LIX <span class="font-light text-neutral-400">BANK</span></h1>
             </div>
-            <div class="leading-tight">
-                <p id="user-name" class="text-[13px] font-semibold">User Account</p>
-                <p class="text-[10px] text-neutral-500 uppercase tracking-widest">Enterprise</p>
+            <div class="bg-neutral-900 px-4 py-1.5 rounded-full border border-white/5 text-[10px] font-black uppercase tracking-widest text-red-500">
+                Enterprise
             </div>
-        </div>
-        <div class="flex gap-4">
-            <span class="text-xl" onclick="webApp.showAlert('Notifications empty')">🔔</span>
-        </div>
-    </nav>
+        </header>
 
-    <main class="px-6 pt-2">
-        <section class="py-8">
-            <p class="text-neutral-500 text-xs font-medium uppercase tracking-widest mb-2">Portfolio Value</p>
-            <div class="flex items-baseline gap-2">
-                <h1 id="display-balance" class="text-5xl font-bold tracking-tighter">$542,000</h1>
-                <span class="text-green-500 text-sm font-bold">+12.5%</span>
+        <main class="px-6">
+            <div class="py-6">
+                <p class="text-neutral-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-1 ml-1">Total Assets</p>
+                <div class="flex items-baseline gap-2">
+                    <h2 id="display-balance" class="text-5xl font-bold tracking-tighter">$542,000</h2>
+                    <span class="text-green-500 text-xs font-bold">+2.4%</span>
+                </div>
             </div>
-        </section>
 
-        <div class="grid grid-cols-2 gap-3 mb-10">
-            <button onclick="copyAddress()" class="btn-secondary py-4 flex items-center justify-center gap-2 text-sm">
-                <span>📥</span> Receive
-            </button>
-            <button onclick="userPay()" class="btn-primary py-4 flex items-center justify-center gap-2 text-sm shadow-lg shadow-red-900/20">
-                <span>⭐</span> Add Stars
-            </button>
-        </div>
-
-        <section class="alpha-card overflow-hidden mb-8">
-            <div class="px-5 py-4 divider flex justify-between items-center bg-white/5">
-                <h3 class="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">My Assets</h3>
-                <span class="text-[10px] text-red-500 font-bold">Market Open</span>
-            </div>
-            
-            <div id="assets-container">
-                <div class="px-5 py-5 flex justify-between items-center divider">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-[#0088CC] rounded-xl flex items-center justify-center font-bold text-[10px]">TON</div>
-                        <div>
-                            <p class="text-sm font-bold text-white">Toncoin</p>
-                            <p class="text-[10px] text-neutral-500 font-medium">Native Token</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-bold italic">100,000.00</p>
-                        <p class="text-[10px] text-neutral-500">$5.42</p>
+            <div class="alpha-card p-7 mb-10 relative overflow-hidden shadow-2xl">
+                <div class="absolute -right-4 -top-4 w-32 h-32 bg-red-600/10 blur-[60px] rounded-full"></div>
+                <div class="flex justify-between items-start mb-12">
+                    <p class="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Premium Member</p>
+                    <span class="text-xs italic font-black text-red-600">LIX SYSTEM</span>
+                </div>
+                <p class="text-2xl font-mono tracking-[0.2em] mb-4">**** **** **** 2026</p>
+                <div class="flex justify-between items-center">
+                    <span id="user-name-card" class="text-[11px] font-bold text-neutral-300 uppercase">USER ACCOUNT</span>
+                    <div class="flex gap-1">
+                        <div class="w-6 h-6 bg-red-600 rounded-full opacity-80"></div>
+                        <div class="w-6 h-6 bg-orange-500 rounded-full -ml-3 opacity-80"></div>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <section class="alpha-card p-6 border-dashed border-neutral-800">
-            <h4 class="text-sm font-bold mb-4">Mint Digital Asset</h4>
-            <div class="space-y-4">
-                <input type="text" id="user-coin-name" placeholder="Symbol (e.g. BTC)" class="w-full p-4 text-sm font-medium outline-none">
-                <button onclick="userPay()" class="w-full bg-white text-black py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em]">
-                    Execute Contract (100 Stars)
+            <h3 class="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-4 ml-1">Asset Portfolio</h3>
+            <div class="space-y-2">
+                <div class="alpha-card p-5 flex justify-between items-center">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-[10px]">TON</div>
+                        <div><p class="text-sm font-bold">Toncoin</p><p class="text-[9px] text-neutral-500 font-bold uppercase">Mainnet</p></div>
+                    </div>
+                    <div class="text-right"><p class="font-bold text-sm tracking-tight">100,000.00</p><p class="text-[10px] text-neutral-500">$5.42</p></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="page-trade" class="page">
+        <div class="p-6">
+            <h2 class="text-3xl font-black mb-8 italic uppercase tracking-tighter">Exchange</h2>
+            
+            <div class="trade-box mb-3">
+                <label class="text-[10px] font-black text-neutral-500 uppercase mb-3 block">From Asset</label>
+                <div class="flex justify-between items-center">
+                    <input type="number" placeholder="0.00" class="bg-transparent text-3xl font-bold outline-none w-2/3">
+                    <div class="token-badge uppercase">TON 💎</div>
+                </div>
+            </div>
+
+            <div class="flex justify-center -my-6 relative z-10">
+                <button class="w-12 h-12 bg-red-600 rounded-3xl flex items-center justify-center border-[6px] border-black shadow-lg">
+                    <span class="text-xl">⇅</span>
                 </button>
             </div>
-        </section>
-    </main>
 
-    <div id="admin-screen" class="admin-panel px-6 overflow-y-auto">
-        <div class="flex justify-between items-center py-6">
-            <h2 class="text-xl font-bold tracking-tighter italic text-red-500 underline">SYSTEM_ROOT</h2>
-            <button onclick="closeAdmin()" class="w-10 h-10 bg-neutral-900 rounded-full flex items-center justify-center text-xl">✕</button>
-        </div>
-        
-        <div class="space-y-6 pb-20">
-            <div class="alpha-card p-5">
-                <p class="text-[10px] font-bold text-neutral-500 uppercase mb-4 tracking-widest">Code Injection (CSS)</p>
-                <textarea id="css-editor" class="w-full h-40 font-mono text-xs p-4 outline-none mb-4" placeholder=".alpha-card { border-color: red; }"></textarea>
-                <button onclick="applyCode()" class="w-full py-4 bg-red-600 rounded-xl font-bold text-xs uppercase">Push Changes</button>
+            <div class="trade-box mt-3 mb-10">
+                <label class="text-[10px] font-black text-neutral-500 uppercase mb-3 block">To Asset</label>
+                <div class="flex justify-between items-center">
+                    <input type="number" placeholder="0.00" class="bg-transparent text-3xl font-bold outline-none w-2/3">
+                    <div class="token-badge uppercase">LIX 🔴</div>
+                </div>
             </div>
 
-            <div class="alpha-card p-5">
-                <p class="text-[10px] font-bold text-neutral-500 uppercase mb-4 tracking-widest">Balance Modifier</p>
-                <input type="text" id="new-balance" class="w-full p-4 mb-4 outline-none" placeholder="e.g. $10,000,000">
-                <button onclick="updateBalance()" class="w-full py-4 bg-blue-600 rounded-xl font-bold text-xs uppercase">Override Display</button>
+            <button onclick="webApp.showAlert('Market Execution Successful')" class="w-full bg-white text-black py-5 rounded-2xl font-black uppercase text-xs tracking-widest active:scale-95 transition-all shadow-xl shadow-white/5">
+                Confirm Swap
+            </button>
+        </div>
+    </div>
+
+    <div id="page-mint" class="page">
+        <div class="p-10 text-center">
+            <div class="w-20 h-20 bg-orange-600/10 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border border-orange-500/20 shadow-inner">
+                <span class="text-4xl">🦊</span>
+            </div>
+            <h2 class="text-2xl font-black tracking-tight">Mint Asset</h2>
+            <p class="text-[10px] text-neutral-500 uppercase font-bold tracking-widest mt-2">Web3 Smart Contract</p>
+        </div>
+
+        <div class="px-6 space-y-5">
+            <div>
+                <label class="text-[10px] font-black text-neutral-500 uppercase ml-2 mb-2 block">Token Identifier</label>
+                <input type="text" id="user-coin-name" placeholder="E.G. BITCOIN" class="glass-input font-bold uppercase tracking-widest text-sm">
+            </div>
+
+            <div class="alpha-card p-5 flex justify-between items-center bg-orange-500/5 border-orange-500/10">
+                <div class="flex items-center gap-3">
+                    <span class="text-orange-500">⛽</span>
+                    <span class="text-[11px] font-bold text-neutral-300 uppercase">Network Fee</span>
+                </div>
+                <span class="text-orange-500 font-black text-xs font-mono">0.005 TON</span>
+            </div>
+
+            <button onclick="userPay()" class="w-full bg-[#f6851b] text-white py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-lg shadow-orange-500/20 active:scale-95 transition-all">
+                Sign & Deploy
+            </button>
+        </div>
+    </div>
+
+    <div id="page-account" class="page">
+        <div class="p-10 text-center bg-gradient-to-b from-neutral-900/50 to-black">
+            <div id="user-photo" class="w-24 h-24 bg-neutral-800 rounded-full mx-auto mb-4 border-2 border-red-600/30 p-1.5 overflow-hidden flex items-center justify-center text-4xl shadow-2xl">
+                👤
+            </div>
+            <h2 id="user-name-profile" class="text-2xl font-black tracking-tight">Loading...</h2>
+            <div class="inline-block bg-red-600/10 text-red-500 text-[9px] font-black px-4 py-1.5 rounded-full mt-3 uppercase tracking-widest">
+                ID: Verified Enterprise
+            </div>
+        </div>
+
+        <div class="px-6 space-y-3">
+            <div class="alpha-card p-5 flex justify-between items-center active:bg-neutral-800" onclick="copyAddress()">
+                <div class="flex items-center gap-3">
+                    <span class="text-lg opacity-50">📋</span>
+                    <span class="text-xs font-bold uppercase tracking-widest">My Address</span>
+                </div>
+                <span class="text-[10px] text-neutral-600 font-mono">UQB4...1V</span>
+            </div>
+            
+            <div class="alpha-card p-5 flex justify-between items-center" onclick="openAdmin()">
+                <div class="flex items-center gap-3">
+                    <span class="text-lg opacity-50">⚙️</span>
+                    <span class="text-xs font-bold uppercase tracking-widest">System Logs</span>
+                </div>
+                <span class="text-xs opacity-20">V12.0</span>
             </div>
         </div>
     </div>
 
-    <div class="h-20" onclick="openAdmin()"></div>
+    <nav class="tab-bar">
+        <button onclick="showPage('wallet')" id="nav-wallet" class="nav-item nav-active">
+            <span class="text-2xl">💳</span>
+            <span class="text-[9px] font-black mt-1 uppercase">Bank</span>
+        </button>
+        <button onclick="showPage('trade')" id="nav-trade" class="nav-item">
+            <span class="text-2xl">⇅</span>
+            <span class="text-[9px] font-black mt-1 uppercase">Trade</span>
+        </button>
+        <button onclick="showPage('mint')" id="nav-mint" class="nav-item">
+            <span class="text-2xl">🦊</span>
+            <span class="text-[9px] font-black mt-1 uppercase">Mint</span>
+        </button>
+        <button onclick="showPage('account')" id="nav-account" class="nav-item">
+            <span class="text-2xl">👤</span>
+            <span class="text-[9px] font-black mt-1 uppercase">Account</span>
+        </button>
+    </nav>
+
+    <div id="admin-screen" class="admin-panel p-6 bg-black fixed inset-0 z-[2000] hidden">
+        <div class="flex justify-between items-center mb-10 pt-10">
+            <h2 class="text-2xl font-black text-red-600 italic underline">ROOT_LOGIN</h2>
+            <button onclick="closeAdmin()" class="text-3xl">✕</button>
+        </div>
+        <div class="space-y-6">
+            <input type="text" id="new-balance" class="glass-input text-xl font-bold" placeholder="NEW BALANCE ($)">
+            <button onclick="updateBalance()" class="w-full bg-red-600 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-red-600/20">Sync System</button>
+        </div>
+    </div>
 
     <script>
         const webApp = window.Telegram.WebApp;
@@ -154,60 +219,63 @@
         webApp.headerColor = '#000000';
         webApp.backgroundColor = '#000000';
 
-        // AUTH SYSTEM
+        // PAGE SWITCHER
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
+            document.getElementById('page-' + pageId).classList.add('page-active');
+            document.getElementById('nav-' + pageId).classList.add('nav-active');
+            webApp.HapticFeedback.impactOccurred('medium');
+        }
+
+        // AUTO AUTH
         if (webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
             const user = webApp.initDataUnsafe.user;
-            document.getElementById('user-name').innerText = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+            const fullName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+            document.getElementById('user-name-profile').innerText = fullName;
+            document.getElementById('user-name-card').innerText = fullName;
             if (user.photo_url) {
-                document.getElementById('user-avatar').innerHTML = `<img src="${user.photo_url}" class="w-full h-full object-cover">`;
+                document.getElementById('user-photo').innerHTML = `<img src="${user.photo_url}" class="w-full h-full object-cover">`;
             }
+        } else {
+            document.getElementById('user-name-profile').innerText = "Guest User";
         }
 
-        const ADMIN_KEY = "LIX-ADMIN-2026-X";
-        
+        // ADMIN LOGIC
         function openAdmin() {
-            if (prompt("ROOT ACCESS REQUIRED:") === ADMIN_KEY) {
-                document.getElementById('admin-screen').style.display = 'block';
+            if (prompt("ENTER ACCESS KEY:") === "LIX-ADMIN-2026-X") {
+                document.getElementById('admin-screen').classList.remove('hidden');
             }
         }
-        function closeAdmin() { document.getElementById('admin-screen').style.display = 'none'; }
-
-        function applyCode() {
-            const css = document.getElementById('css-editor').value;
-            document.getElementById('custom-styles').innerHTML += css;
-            localStorage.setItem('lix_custom_css', css);
-            webApp.showAlert("System: Code Injected Successfully");
-        }
-
+        function closeAdmin() { document.getElementById('admin-screen').classList.add('hidden'); }
+        
         function updateBalance() {
             const val = document.getElementById('new-balance').value;
             if(val) {
                 document.getElementById('display-balance').innerText = val;
-                localStorage.setItem('lix_balance', val);
-                webApp.showAlert("Display balance updated.");
+                localStorage.setItem('lix_final_bal', val);
+                webApp.showAlert("System: Balance Overridden Successfully");
+                closeAdmin();
             }
         }
 
         function copyAddress() {
             navigator.clipboard.writeText("UQB4nPZHmv-krk6ayZ4Iy4BstgnSEpYOQHwYIXRsBBbTxF1V");
             webApp.HapticFeedback.notificationOccurred('success');
-            webApp.showAlert("Personal Enterprise Address Copied");
+            webApp.showAlert("Personal Enterprise ID Copied to Clipboard");
         }
 
         async function userPay() {
             const name = document.getElementById('user-coin-name').value;
-            if(!name) return webApp.showAlert("Enter Asset Identifier");
-            webApp.showConfirm(`Initiate Minting Order for "${name}" via Telegram Stars?`, (c) => {
-                if(c) webApp.showAlert("Establishing Secure Bridge Connection...");
+            if(!name) return webApp.showAlert("Symbol Identifier Required");
+            webApp.showConfirm(`Deploy ${name} Smart Contract via Telegram Stars?`, (confirmed) => {
+                if(confirmed) webApp.showAlert("Establishing Secure Node Connection...");
             });
         }
 
-        // LOAD SAVED
-        if(localStorage.getItem('lix_custom_css')) {
-            document.getElementById('custom-styles').innerHTML += localStorage.getItem('lix_custom_css');
-        }
-        if(localStorage.getItem('lix_balance')) {
-            document.getElementById('display-balance').innerText = localStorage.getItem('lix_balance');
+        // INITIAL LOAD
+        if(localStorage.getItem('lix_final_bal')) {
+            document.getElementById('display-balance').innerText = localStorage.getItem('lix_final_bal');
         }
     </script>
 </body>
