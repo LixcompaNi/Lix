@@ -3,177 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wallet</title>
+    <title>FPI SYSTEM v.9.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        
-        body { 
-            background: #000000; 
-            color: white; 
-            font-family: 'Inter', -apple-system, sans-serif; 
-            min-height: 100vh;
-            margin: 0;
+    <style id="custom-styles">
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { background: #f8f9fa; color: #1a1a1a; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; transition: 0.3s; }
+        .fpi-card { background: #ffffff; border-radius: 32px; border: 1px solid #edf0f3; }
+        .fpi-btn { background: #1a1a1a; color: #ffffff; border-radius: 20px; transition: 0.3s; }
+        .fpi-btn:active { transform: scale(0.96); }
+        .admin-panel { display: none; position: fixed; inset: 0; background: #ffffff; z-index: 1000; overflow-y: auto; }
+        @media (prefers-color-scheme: dark) {
+            body { background: #000000; color: #fff; }
+            .fpi-card { background: #111; border-color: #222; }
+            .fpi-btn { background: #fff; color: #000; }
+            .admin-panel { background: #000; }
         }
-        .glass-card { 
-            background: #1c1c1d;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .premium-gradient { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
-        .star-gold { 
-            background: linear-gradient(90deg, #ffc107, #ff9800);
-            color: black;
-        }
-        .ton-blue { background: #24a1de; }
-        .admin-panel { 
-            display: none; 
-            position: fixed; 
-            inset: 0; 
-            background: #000000; 
-            z-index: 100; 
-            padding: 20px;
-        }
-        .tab-active { border-bottom: 2px solid white; color: white; }
-        .tab-inactive { color: #8e8e93; }
     </style>
 </head>
-<body class="max-w-md mx-auto p-4 select-none">
+<body class="p-5">
 
-    <header class="text-center pt-10 pb-10">
-        <p class="text-[#8e8e93] text-sm font-medium mb-1">Total Balance</p>
-        <h1 class="text-5xl font-bold tracking-tight">$542.00</h1>
-    </header>
-
-    <div class="flex justify-center gap-10 mb-10">
-        <div onclick="webApp.showAlert('Wallet Address copied!')" class="flex flex-col items-center">
-            <div class="w-12 h-12 bg-[#24a1de] rounded-full flex items-center justify-center text-xl mb-2">↑</div>
-            <span class="text-xs font-medium">Send</span>
-        </div>
-        <div onclick="userPay()" class="flex flex-col items-center">
-            <div class="w-12 h-12 bg-[#24a1de] rounded-full flex items-center justify-center text-xl mb-2">⭐</div>
-            <span class="text-xs font-medium">Add Stars</span>
-        </div>
-        <div onclick="copyAddress()" class="flex flex-col items-center">
-            <div class="w-12 h-12 bg-[#24a1de] rounded-full flex items-center justify-center text-xl mb-2">📋</div>
-            <span class="text-xs font-medium">Receive</span>
-        </div>
-    </div>
-
-    <div class="flex gap-6 px-2 mb-4 text-sm font-bold border-b border-[#1c1c1d]">
-        <div class="pb-2 tab-active">Tokens</div>
-        <div class="pb-2 tab-inactive uppercase opacity-50">Collectibles</div>
-    </div>
-
-    <div class="space-y-1" id="market-list">
-        </div>
-
-    <div class="mt-8 glass-card p-6 rounded-3xl">
-        <h3 class="text-lg font-bold mb-4">Create your own Token</h3>
-        <input type="text" id="user-coin-name" placeholder="TOKEN NAME" 
-               class="w-full bg-black border border-[#2c2c2e] p-4 rounded-2xl mb-4 text-white outline-none focus:border-[#24a1de]">
-        
-        <button onclick="userPay()" class="w-full py-4 star-gold rounded-2xl font-bold text-sm uppercase transition-transform active:scale-95">
-            Pay 100 ⭐
-        </button>
-    </div>
-
-    <div id="admin-screen" class="admin-panel">
-        <div class="flex justify-between items-center mb-10">
-            <h2 class="text-2xl font-bold text-red-500 italic">MASTER ACCESS</h2>
-            <button onclick="closeAdmin()" class="text-2xl">✕</button>
-        </div>
-        <div class="space-y-4">
-            <div class="bg-[#1c1c1d] p-6 rounded-3xl">
-                <p class="text-xs font-bold text-gray-500 mb-4 uppercase">Mint New Token</p>
-                <input type="text" id="adm-coin-name" class="w-full bg-black p-4 rounded-xl mb-3 border border-[#2c2c2e]" placeholder="Name">
-                <input type="text" id="adm-coin-price" class="w-full bg-black p-4 rounded-xl mb-4 border border-[#2c2c2e]" placeholder="Price in TON">
-                <button onclick="adminCreateCoin()" class="w-full py-4 bg-red-600 rounded-xl font-bold uppercase">Confirm Release</button>
+    <div class="flex justify-between items-center mb-8 px-2 pt-4">
+        <div class="flex items-center gap-3">
+            <div id="user-photo" class="w-10 h-10 bg-zinc-200 rounded-full flex items-center justify-center font-bold overflow-hidden border-2 border-white shadow-sm">
+                👤
             </div>
-            <p class="text-[10px] text-gray-600 text-center">Owner Wallet: UQB4nPZHmv-krk6ayZ4Iy4BstgnSEpYOQHwYIXRsBBbTxF1V</p>
+            <div>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Client</p>
+                <h2 id="user-name" class="text-sm font-800 tracking-tight">Guest User</h2>
+            </div>
+        </div>
+        <div class="bg-zinc-100 dark:bg-zinc-800 p-2 rounded-full px-4 text-[10px] font-bold uppercase tracking-widest">FPI VIP</div>
+    </div>
+
+    <div class="fpi-card p-8 mb-6 shadow-sm">
+        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Total Balance</p>
+        <h2 id="display-balance" class="text-4xl font-extrabold tracking-tighter mb-8">$542.00</h2>
+        <div class="flex gap-3">
+            <button onclick="copyAddress()" class="flex-1 fpi-btn py-4 text-xs font-bold uppercase tracking-widest shadow-lg shadow-black/5">Receive</button>
+            <button onclick="userPay()" class="bg-yellow-400 text-black px-6 rounded-2xl font-bold">⭐</button>
         </div>
     </div>
 
-    <div class="fixed bottom-6 right-6 opacity-10" onclick="openAdmin()">⚙️</div>
+    <div id="dynamic-assets" class="space-y-4 mb-8">
+        <div class="fpi-card p-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center font-black text-white text-xs">TON</div>
+                <div><p class="font-800 text-sm">Toncoin</p><p class="text-[10px] text-gray-400 font-bold">Official</p></div>
+            </div>
+            <p class="font-800 text-sm">100.00</p>
+        </div>
+    </div>
+
+    <div class="fpi-card p-6 border-dashed border-2 bg-transparent">
+        <input type="text" id="user-coin-name" placeholder="Token Name" class="w-full bg-white dark:bg-zinc-900 p-4 rounded-2xl mb-4 border border-zinc-200 dark:border-zinc-800 outline-none font-bold">
+        <button onclick="userPay()" class="w-full fpi-btn py-4 text-[10px] font-black uppercase tracking-widest">Confirm (100 Stars)</button>
+    </div>
+
+    <div id="admin-screen" class="admin-panel p-6">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-black">SYSTEM CONFIG</h2>
+            <button onclick="closeAdmin()" class="text-xl">✕</button>
+        </div>
+        
+        <div class="space-y-6">
+            <div class="bg-zinc-50 dark:bg-zinc-900 p-5 rounded-3xl border border-zinc-100 dark:border-zinc-800">
+                <p class="text-xs font-bold text-gray-400 mb-3 uppercase">Site Code Editor (CSS)</p>
+                <textarea id="css-editor" class="w-full h-32 bg-black text-green-500 font-mono text-xs p-4 rounded-xl mb-4" placeholder="body { background: red; }"></textarea>
+                <button onclick="applyCode()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-xs">APPLY CHANGES</button>
+            </div>
+
+            <div class="bg-zinc-50 dark:bg-zinc-900 p-5 rounded-3xl border border-zinc-100 dark:border-zinc-800">
+                <p class="text-xs font-bold text-gray-400 mb-3 uppercase">Balance Control</p>
+                <input type="text" id="new-balance" class="w-full bg-white dark:bg-black p-4 rounded-xl mb-3 border border-zinc-200 dark:border-zinc-800 font-bold" placeholder="Example: $1,000,000">
+                <button onclick="updateBalance()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-xs uppercase">Update Display</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-10 text-center opacity-5 text-[8px]" onclick="openAdmin()">DEVELOPER MODE</div>
 
     <script>
         const webApp = window.Telegram.WebApp;
         webApp.ready();
-        webApp.expand();
-        webApp.headerColor = '#000000';
 
-        const ADMIN_KEY = "LIX-ADMIN-2026-X";
-        const OWNER_ADDR = "UQB4nPZHmv-krk6ayZ4Iy4BstgnSEpYOQHwYIXRsBBbTxF1V";
-        
-        let marketCoins = JSON.parse(localStorage.getItem('market')) || [{name: "LIX COIN", price: "1.00"}];
-
-        function copyAddress() {
-            navigator.clipboard.writeText(OWNER_ADDR);
-            webApp.showAlert("Official Wallet Address copied to clipboard!");
+        // АВТОРИЗАЦИЯ
+        if (webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
+            const user = webApp.initDataUnsafe.user;
+            document.getElementById('user-name').innerText = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+            if (user.photo_url) {
+                document.getElementById('user-photo').innerHTML = `<img src="${user.photo_url}" class="w-full h-full object-cover">`;
+            }
         }
 
-        function renderMarket() {
-            const list = document.getElementById('market-list');
-            list.innerHTML = `
-                <div class="flex justify-between items-center py-4 border-b border-[#1c1c1d]">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-[#24a1de] rounded-full flex items-center justify-center text-lg shadow-lg">💎</div>
-                        <div>
-                            <p class="font-bold">Toncoin</p>
-                            <p class="text-xs text-[#8e8e93]">$5.42 <span class="text-green-500">+2.15%</span></p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold italic">100 TON</p>
-                        <p class="text-xs text-[#8e8e93]">$542.00</p>
-                    </div>
-                </div>`;
-            
-            marketCoins.forEach(coin => {
-                list.innerHTML += `
-                <div class="flex justify-between items-center py-4 border-b border-[#1c1c1d]">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 premium-gradient rounded-full flex items-center justify-center text-[10px] font-black italic shadow-lg">${coin.name.substring(0,2)}</div>
-                        <div>
-                            <p class="font-bold">${coin.name}</p>
-                            <p class="text-xs text-[#8e8e93]">${coin.price} TON</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold italic">0 ${coin.name.split(' ')[0]}</p>
-                        <p class="text-xs text-[#8e8e93]">$0.00</p>
-                    </div>
-                </div>`;
-            });
+        const ADMIN_KEY = "LIX-ADMIN-2026-X";
+        
+        function openAdmin() {
+            if (prompt("ADMIN KEY:") === ADMIN_KEY) {
+                document.getElementById('admin-screen').style.display = 'block';
+            }
+        }
+        function closeAdmin() { document.getElementById('admin-screen').style.display = 'none'; }
+
+        // ФУНКЦИЯ ИЗМЕНЕНИЯ КОДА
+        function applyCode() {
+            const newCss = document.getElementById('css-editor').value;
+            document.getElementById('custom-styles').innerHTML += newCss;
+            localStorage.setItem('custom_code', newCss); // Сохраняем "код" в памяти телефона
+            webApp.showAlert("Style applied!");
+        }
+
+        function updateBalance() {
+            const val = document.getElementById('new-balance').value;
+            if(val) {
+                document.getElementById('display-balance').innerText = val;
+                localStorage.setItem('my_balance', val);
+            }
+        }
+
+        function copyAddress() {
+            navigator.clipboard.writeText("UQB4nPZHmv-krk6ayZ4Iy4BstgnSEpYOQHwYIXRsBBbTxF1V");
+            webApp.showAlert("FPI Wallet: Copied");
         }
 
         async function userPay() {
             const name = document.getElementById('user-coin-name').value;
-            if(!name) return webApp.showAlert("Please enter a token name!");
-            webApp.showConfirm(`Pay 100 Stars to create "${name}"?`, (c) => {
-                if(c) webApp.showAlert("Redirecting to Telegram Stars payment...");
+            if(!name) return webApp.showAlert("Name asset!");
+            webApp.showConfirm(`Mint ${name}?`, (c) => {
+                if(c) webApp.showAlert("Bridge connected.");
             });
         }
 
-        function openAdmin() { 
-            if (prompt("SYSTEM KEY:") === ADMIN_KEY) { 
-                document.getElementById('admin-screen').style.display = 'block'; 
-            } 
+        // Загрузка сохраненных данных
+        if(localStorage.getItem('custom_code')) {
+            document.getElementById('custom-styles').innerHTML += localStorage.getItem('custom_code');
         }
-        function closeAdmin() { document.getElementById('admin-screen').style.display = 'none'; }
-        
-        function adminCreateCoin() {
-            const n = document.getElementById('adm-coin-name').value;
-            const p = document.getElementById('adm-coin-price').value;
-            if(n && p) {
-                marketCoins.push({name: n, price: p});
-                localStorage.setItem('market', JSON.stringify(marketCoins));
-                renderMarket();
-                closeAdmin();
-            }
+        if(localStorage.getItem('my_balance')) {
+            document.getElementById('display-balance').innerText = localStorage.getItem('my_balance');
         }
-
-        renderMarket();
     </script>
 </body>
 </html>
