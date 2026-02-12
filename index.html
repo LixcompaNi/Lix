@@ -1,154 +1,70 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LIX BLACK</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root { --bg: #000; --card: #0a0a0a; --accent: #ff0000; }
-        body { 
-            background: var(--bg); color: #fff; 
-            font-family: -apple-system, system-ui, sans-serif; 
-            overflow: hidden; margin: 0;
-        }
-        .app-container { height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Эффект дорогой карты */
-        .premium-card {
-            background: linear-gradient(145deg, #111, #050505);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 30px;
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-        
-        /* Кнопки как в нативных iOS приложениях */
-        .ios-btn {
-            background: #111;
-            border-radius: 20px;
-            transition: all 0.1s ease;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .ios-btn:active { background: #222; transform: scale(0.97); }
-        .btn-red { background: var(--accent); color: #fff; }
-        .btn-red:active { background: #cc0000; }
+const tg = window.Telegram.WebApp;
 
-        .tab-bar {
-            background: rgba(5,5,5,0.8);
-            backdrop-filter: saturate(180%) blur(20px);
-            border-top: 0.5px solid rgba(255,255,255,0.08);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        
-        .active-tab { color: var(--accent); }
-        .unactive-tab { color: #444; }
+// Состояние системы
+const BankState = {
+    user: tg.initDataUnsafe?.user || { first_name: "Admin", id: "0000" },
+    balance: parseFloat(localStorage.getItem('lix_balance')) || 542000.00,
+    history: JSON.parse(localStorage.getItem('lix_history')) || []
+};
 
-        /* Убираем скролл-бар */
-        ::-webkit-scrollbar { display: none; }
-    </style>
-</head>
-<body>
+function initApp() {
+    tg.ready();
+    tg.expand();
+    tg.headerColor = '#000000';
+    
+    document.getElementById('user-name').innerText = BankState.user.first_name;
+    updateUI();
+}
 
-<div class="app-container">
-    <header class="px-6 pt-12 pb-4 flex justify-between items-end">
-        <div>
-            <h1 class="text-3xl font-bold tracking-tighter">LIX</h1>
-            <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Enterprise Priority</p>
-        </div>
-        <div id="user-avatar" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 overflow-hidden flex items-center justify-center">👤</div>
-    </header>
+function updateUI() {
+    document.getElementById('balance').innerText = `$${BankState.balance.toLocaleString('en-US')}`;
+    saveData();
+}
 
-    <div class="flex-1 overflow-y-auto px-6 space-y-8 pb-32">
-        
-        <div class="pt-4">
-            <p class="text-zinc-500 text-xs font-medium mb-1">Суммарный баланс</p>
-            <h2 id="display-balance" class="text-5xl font-bold tracking-tighter">$542,000</h2>
-        </div>
+function saveData() {
+    localStorage.setItem('lix_balance', BankState.balance);
+    localStorage.setItem('lix_history', JSON.stringify(BankState.history));
+}
 
-        <div class="premium-card p-6 h-52 flex flex-col justify-between">
-            <div class="flex justify-between items-start">
-                <div class="w-10 h-8 bg-zinc-800 rounded-md opacity-20"></div>
-                <span class="text-[10px] font-black tracking-widest opacity-40">LIX BLACK</span>
-            </div>
-            <div>
-                <p class="text-lg font-mono tracking-widest mb-1">•••• 2026</p>
-                <p id="user-name-card" class="text-[10px] font-bold uppercase opacity-30">Loading...</p>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-            <button onclick="copyAddress()" class="ios-btn py-5 flex flex-col items-center gap-2">
-                <span class="text-xl">📥</span>
-                <span class="text-[10px] font-bold uppercase">Получить</span>
-            </button>
-            <button onclick="showPage('mint')" class="ios-btn py-5 flex flex-col items-center gap-2">
-                <span class="text-xl">🦊</span>
-                <span class="text-[10px] font-bold uppercase">Выпуск</span>
-            </button>
-        </div>
-
-        <div class="space-y-1">
-            <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4">Мои активы</p>
-            <div class="flex justify-between items-center py-4 border-b border-zinc-900">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-bold text-xs">TON</div>
-                    <div>
-                        <p class="font-bold">Toncoin</p>
-                        <p class="text-[10px] text-zinc-500">Основной счет</p>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <p class="font-bold">100,000</p>
-                    <p class="text-[10px] text-green-500">+$12,40</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <nav class="tab-bar fixed bottom-0 w-full flex justify-around py-4">
-        <button class="flex flex-col items-center gap-1 active-tab">
-            <span class="text-xl">💳</span>
-            <span class="text-[9px] font-bold uppercase">Кошелек</span>
-        </button>
-        <button onclick="webApp.showAlert('Скоро...')" class="flex flex-col items-center gap-1 unactive-tab">
-            <span class="text-xl">📈</span>
-            <span class="text-[9px] font-bold uppercase">Биржа</span>
-        </button>
-        <button onclick="webApp.showAlert('В разработке')" class="flex flex-col items-center gap-1 unactive-tab">
-            <span class="text-xl">👤</span>
-            <span class="text-[9px] font-bold uppercase">Профиль</span>
-        </button>
-    </nav>
-</div>
-
-<script>
-    const webApp = window.Telegram.WebApp;
-    webApp.ready();
-    webApp.expand();
-    webApp.headerColor = '#000000';
-
-    // Подгрузка реальных данных
-    if (webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
-        const user = webApp.initDataUnsafe.user;
-        const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-        document.getElementById('user-name-card').innerText = name;
-        if (user.photo_url) {
-            document.getElementById('user-avatar').innerHTML = `<img src="${user.photo_url}" class="w-full h-full object-cover">`;
-        }
+// Функции Админ-панели
+function openAdmin() {
+    const pass = prompt("Введите код доступа к терминалу:");
+    if (pass === "LIX-ADMIN-2026-X") {
+        document.getElementById('admin-modal').style.display = 'flex';
+        tg.HapticFeedback.impactOccurred('heavy');
+    } else {
+        alert("ОШИБКА ДОСТУПА: Узел заблокирован");
     }
+}
 
-    function copyAddress() {
-        navigator.clipboard.writeText("UQB4nPZHmv-krk6ayZ4Iy4BstgnSEpYOQHwYIXRsBBbTxF1V");
-        webApp.HapticFeedback.notificationOccurred('success');
-        webApp.showAlert("Адрес скопирован");
-    }
+function closeAdmin() {
+    document.getElementById('admin-modal').style.display = 'none';
+}
 
-    // Сохранение баланса
-    if(localStorage.getItem('lix_bal')) {
-        document.getElementById('display-balance').innerText = localStorage.getItem('lix_bal');
+function setBalance() {
+    const newBal = prompt("Введите новую сумму баланса ($):");
+    if (newBal !== null && !isNaN(newBal)) {
+        BankState.balance = parseFloat(newBal);
+        updateUI();
+        tg.HapticFeedback.notificationOccurred('success');
+        alert("Баланс системы обновлен");
     }
-</script>
-</body>
-</html>
+}
+
+function addHistoryEvent() {
+    const msg = prompt("Введите текст уведомления:");
+    if (msg) {
+        alert("Событие системы создано: " + msg);
+    }
+}
+
+function makeTransfer() {
+    const amount = prompt("Сумма перевода:");
+    if (amount && !isNaN(amount) && amount <= BankState.balance) {
+        BankState.balance -= Number(amount);
+        tg.HapticFeedback.notificationOccurred('success');
+        updateUI();
+    }
+}
+
+window.onload = initApp;
