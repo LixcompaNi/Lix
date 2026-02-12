@@ -1,0 +1,40 @@
+/* Добавь это в конец существующего style.css */
+
+.admin-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 9999;
+    flex-direction: column;
+    padding: 30px;
+    font-family: 'Courier New', monospace;
+}
+
+.admin-header {
+    border-bottom: 1px solid #333;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.admin-btn {
+    background: #1a1a1a;
+    color: #00ff00;
+    border: 1px solid #333;
+    padding: 15px;
+    margin-bottom: 10px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.admin-btn:active {
+    background: #333;
+}
+
+.close-admin {
+    margin-top: auto;
+    color: #ff0000;
+    text-align: center;
+    padding: 20px;
+}
